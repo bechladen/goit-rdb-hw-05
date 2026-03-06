@@ -1,0 +1,36 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Finder/Volume
+.Icon?
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Logs
+*.log
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Node (if any)
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# MySQL Workbench temp/backup
+*.mwb.bak
+*.bak.DS_Store
+.DS_Store
