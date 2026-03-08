@@ -9,11 +9,15 @@ SELECT
 FROM order_details od;
 
 -- 2. Вкладений запит в WHERE: order_details тільки там, де у orders shipper_id = 3
+-- варіант з WHERE (SELECT o.shipper_id ... ) = 3 працює тільки якщо підзапит гарантовано повертає 1 рядок для кожного order_id. У “нормальній” моделі orders.id — унікальний, тому підзапит повертає 1 рядок і помилки не буде. Але шаблон з = ризиковий, якщо таблиця може містити дублікати/неунікальні ключі або якщо підзапит потенційно може повернути кілька значень.
 SELECT *
 FROM order_details od
-WHERE (SELECT o.shipper_id
-       FROM orders o
-       WHERE o.id = od.order_id) = 3;
+WHERE EXISTS (
+  SELECT 1
+  FROM orders o
+  WHERE o.id = od.order_id
+    AND o.shipper_id = 3
+);
        
 -- 3. Вкладений запит у FROM: quantity>10, далі AVG(quantity) група по order_id
 SELECT
@@ -39,20 +43,17 @@ FROM temp
 GROUP BY order_id;
 
 -- 5. Функція FLOAT/FLOAT, ділення, і застосувати до quantity
-DROP FUNCTION IF EXISTS divide_f;
+-- Ділення на 0 дасть NULL або помилку залежно від налаштувань, тому краще захиститися.
 DELIMITER $$
 
 CREATE FUNCTION divide_f(a FLOAT, b FLOAT)
 RETURNS FLOAT
 DETERMINISTIC
-RETURN a / b$$
+BEGIN
+  IF b = 0 THEN
+    RETURN NULL;
+  END IF;
+  RETURN a / b;
+END$$
 
 DELIMITER ;
-
-SELECT
-  order_id,
-  product_id,
-  quantity,
-  divide_f(quantity, 2.5) AS quantity_divided
-FROM order_details
-LIMIT 20;
